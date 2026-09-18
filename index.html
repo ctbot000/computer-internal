@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How a Computer Works</title>
+<meta name="description" content="An interactive, visual tour from a single transistor up to a running program: bits, logic gates, adders, memory, and a working 8-bit CPU you can step through one clock tick at a time.">
+<meta name="color-scheme" content="dark light">
+<meta property="og:title" content="How a Computer Works">
+<meta property="og:description" content="From one switch to a running program — an interactive tour with a working 8-bit CPU simulator.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230b1220'/%3E%3Crect x='16' y='16' width='32' height='32' rx='4' fill='none' stroke='%2338e1c8' stroke-width='4'/%3E%3Cpath d='M26 8v8M38 8v8M26 48v8M38 48v8M8 26h8M8 38h8M48 26h8M48 38h8' stroke='%2338e1c8' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css">
+<script>
+  // Set the theme before first paint so a light-mode reader never sees a dark flash.
+  (function () {
+    var t;
+    try { t = localStorage.getItem('hcw-theme'); } catch (e) { t = null; }
+    if (!t) t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    document.documentElement.dataset.theme = t;
+  })();
+</script>
+</head>
+<body>
+
+<a class="skip-link" href="#start">Skip to content</a>
+
+<header class="topbar">
+  <a class="brand" href="#start">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span class="brand-text">How a Computer Works</span>
+  </a>
+  <nav class="nav" aria-label="Sections">
+    <a href="#bits" data-nav="bits"><span class="nav-n">1</span><span class="nav-t">Bits</span></a>
+    <a href="#gates" data-nav="gates"><span class="nav-n">2</span><span class="nav-t">Gates</span></a>
+    <a href="#adder" data-nav="adder"><span class="nav-n">3</span><span class="nav-t">Math</span></a>
+    <a href="#memory" data-nav="memory"><span class="nav-n">4</span><span class="nav-t">Memory</span></a>
+    <a href="#cpu" data-nav="cpu"><span class="nav-n">5</span><span class="nav-t">CPU</span></a>
+    <a href="#speed" data-nav="speed"><span class="nav-n">6</span><span class="nav-t">Speed</span></a>
+    <a href="#layers" data-nav="layers"><span class="nav-n">7</span><span class="nav-t">Tower</span></a>
+  </nav>
+  <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch colour theme">
+    <span class="theme-icon" aria-hidden="true"></span>
+  </button>
+</header>
+
+<div class="progress" aria-hidden="true"><div class="progress-bar" id="progress-bar"></div></div>
+
+<main>
+
+<!-- ───────────────────────────── INTRO ───────────────────────────── -->
+<section id="start" class="hero">
+  <div class="wrap">
+    <p class="eyebrow">An interactive tour, bottom to top</p>
+    <h1>A computer is a rock we tricked into&nbsp;thinking.</h1>
+    <p class="lede">
+      Underneath every app, every video, every message, there is nothing but switches turning
+      on and off — billions of them, a few billion times a second. This page walks up the
+      whole ladder: one switch, then logic, then arithmetic, then memory, then a real CPU you
+      can step through one clock tick at a time.
+    </p>
+    <p class="lede-sub">Everything below is live. Click things.</p>
+
+    <div class="vn">
+      <div class="vn-diagram" id="vn-diagram"></div>
+      <div class="vn-detail" id="vn-detail" role="status" aria-live="polite"></div>
+    </div>
+
+    <p class="hint">
+      This shape — a processor, a memory holding both data <em>and</em> the program, and a bus
+      between them — is the <strong>stored-program</strong> or <strong>von&nbsp;Neumann</strong>
+      architecture, sketched in 1945. Your phone still works this way.
+    </p>
+  </div>
+</section>
+
+<!-- ───────────────────────────── 1. BITS ───────────────────────────── -->
+<section id="bits" class="section">
+  <div class="wrap">
+    <p class="kicker"><span class="kicker-n">01</span> The atom</p>
+    <h2>One switch, one bit</h2>
+    <p class="copy">
+      A transistor is a switch with no moving parts: put a voltage on its control wire and
+      current flows; take it away and it stops. That is the entire vocabulary of the machine —
+      <em>flowing</em> and <em>not flowing</em>, which we write as <code>1</code> and
+      <code>0</code>. One switch holds one <strong>bit</strong>.
+    </p>
+
+    <div class="panel">
+      <div class="panel-head"><h3>A single switch</h3></div>
+      <div class="switch-demo" id="switch-demo"></div>
+    </div>
+
+    <p class="copy">
+      One bit can say yes or no. Eight bits sitting side by side can say a great deal more:
+      each position is worth twice the one to its right, so eight switches cover every whole
+      number from 0 to 255. That group of eight is a <strong>byte</strong>.
+    </p>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Eight switches make a byte</h3>
+        <div class="panel-actions">
+          <button class="btn" data-byte-act="inc" type="button">+1</button>
+          <button class="btn" data-byte-act="dbl" type="button">&times;2</button>
+          <button class="btn" data-byte-act="rnd" type="button">Random</button>
+          <button class="btn" data-byte-act="clr" type="button">Clear</button>
+        </div>
+      </div>
+      <div class="byte-demo" id="byte-demo"></div>
+    </div>
+
+    <p class="copy">
+      Nothing in the switches says what they <em>mean</em>. The same eight bits are the number
+      82, the letter <code>R</code>, a shade of dark grey, or a CPU instruction — the meaning
+      lives entirely in what reads them. That single idea is why one machine can do every job.
+    </p>
+  </div>
+</section>
+
+<!-- ───────────────────────────── 2. GATES ───────────────────────────── -->
+<section id="gates" class="section alt">
+  <div class="wrap">
+    <p class="kicker"><span class="kicker-n">02</span> The vocabulary</p>
+    <h2>Switches that answer questions</h2>
+    <p class="copy">
+      Wire a handful of transistors together and you get a <strong>logic gate</strong>: a lump
+      of circuitry whose output depends on its inputs by a fixed rule. There are only a few
+      rules worth naming, and every one of them fits in a sentence.
+    </p>
+
+    <div class="gate-grid" id="gate-grid"></div>
+
+    <div class="callout">
+      <h4>One gate is enough</h4>
+      <p>
+        NAND is <em>universal</em>: wire NANDs together and you can build NOT, AND, OR, XOR —
+        and therefore everything else on this page. Real chips lean on this, because a NAND is
+        cheap in silicon. Flip the switches below to watch three NAND gates impersonate the
+        other three.
+      </p>
+      <div class="nand-demo" id="nand-demo"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────────── 3. ADDER ───────────────────────────── -->
+<section id="adder" class="section">
+  <div class="wrap">
+    <p class="kicker"><span class="kicker-n">03</span> The first useful trick</p>
+    <h2>Gates that do arithmetic</h2>
+    <p class="copy">
+      Add two bits and the answer needs two bits of its own: 1&nbsp;+&nbsp;1 is
+      <code>10</code>, a zero with a carry. XOR gives the digit, AND gives the carry. Five
+      gates handle a carry coming <em>in</em> as well, and that five-gate lump is a
+      <strong>full adder</strong> — the piece every processor is built out of.
+    </p>
+
+    <div class="panel">
+      <div class="panel-head"><h3>Full adder &mdash; click any input</h3></div>
+      <div class="fa-demo" id="fa-demo"></div>
+    </div>
+
+    <p class="copy">
+      Chain eight of them, carry-out to carry-in, and you can add any two bytes. The carry
+      ripples from right to left exactly the way it does when you add on paper — and that
+      ripple is real, physical delay, which is why the whole machine has to wait for a clock
+      tick before trusting the answer.
+    </p>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h3>8-bit ripple-carry adder</h3>
+        <div class="panel-actions">
+          <button class="btn" id="ripple-run" type="button">Watch the carry ripple</button>
+          <button class="btn" id="ripple-rnd" type="button">Random</button>
+        </div>
+      </div>
+      <div class="ripple" id="ripple"></div>
+    </div>
+
+    <div class="callout">
+      <h4>Subtraction for free</h4>
+      <p>
+        There is no subtractor in most CPUs. Flip every bit of the second number, add one, and
+        add that instead — <strong>two's complement</strong>. The adder never knows the
+        difference, which is why the same circuit serves both instructions in the processor
+        further down this page.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────────── 4. MEMORY ───────────────────────────── -->
+<section id="memory" class="section alt">
+  <div class="wrap">
+    <p class="kicker"><span class="kicker-n">04</span> Standing still</p>
+    <h2>Circuits that remember</h2>
+    <p class="copy">
+      Gates forget instantly: change an input and the output follows. To remember, a circuit
+      has to feed its own output back into its input, so it holds itself in place after the
+      signal that set it is gone. Two cross-coupled NOR gates do exactly that — the
+      <strong>SR latch</strong>, one stored bit.
+    </p>
+
+    <div class="panel">
+      <div class="panel-head"><h3>SR latch &mdash; press Set, then let go</h3></div>
+      <div class="latch" id="latch"></div>
+    </div>
+
+    <p class="copy">
+      Line up eight latches behind a single "load now" wire and you have a
+      <strong>register</strong>: one byte the machine can hold onto. Line up millions and you
+      have memory — but then you need a way to talk to one row without disturbing the rest.
+      That job belongs to the <strong>address decoder</strong>: n wires in, one of 2<sup>n</sup>
+      rows out.
+    </p>
+
+    <div class="panel">
+      <div class="panel-head"><h3>3-to-8 address decoder &mdash; set an address</h3></div>
+      <div class="decoder" id="decoder"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────────── 5. CPU ───────────────────────────── -->
+<section id="cpu" class="section">
+  <div class="wrap">
+    <p class="kicker"><span class="kicker-n">05</span> The whole machine</p>
+    <h2>A CPU you can watch think</h2>
+    <p class="copy">
+      Below is a complete 8-bit computer: sixteen bytes of memory, a handful of registers, one
+      adder, and a shared <strong>bus</strong> that only one component may speak on at a time.
+      It does nothing but repeat three steps forever — <em>fetch</em> the next instruction,
+      <em>decode</em> what it means, <em>execute</em> it — and that loop is all any processor
+      has ever done.
+    </p>
+    <p class="copy">
+      Every clock tick moves one value along the bus. Step through it and watch the control
+      lamps at the bottom: those are the wires the control unit pulls to make each move happen.
+    </p>
+  </div>
+
+  <div class="wrap wrap-wide">
+    <div class="cpu" id="cpu">
+
+      <div class="cpu-stage">
+        <div class="cpu-diagram" id="cpu-diagram"></div>
+        <div class="cpu-narrate" id="cpu-narrate" role="status" aria-live="polite"></div>
+        <div class="signals" id="cpu-signals"></div>
+      </div>
+
+      <aside class="cpu-side">
+        <div class="cpu-controls">
+          <div class="btn-row">
+            <button class="btn btn-primary" id="cpu-step" type="button">Tick</button>
+            <button class="btn" id="cpu-instr" type="button">Instruction</button>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-accent" id="cpu-run" type="button">Run</button>
+            <button class="btn" id="cpu-reset" type="button">Reset</button>
+          </div>
+          <label class="slider">
+            <span class="slider-label">Clock<span class="slider-val" id="cpu-speed-val">4 Hz</span></span>
+            <input type="range" id="cpu-speed" min="0" max="5" step="1" value="1">
+          </label>
+        </div>
+
+        <div class="out-display">
+          <span class="out-label">Output</span>
+          <span class="out-value" id="cpu-out">0</span>
+          <div class="out-log" id="cpu-outlog"></div>
+        </div>
+
+        <div class="prog">
+          <div class="prog-head">
+            <label for="cpu-source">Program</label>
+            <select id="cpu-example" aria-label="Example program"></select>
+          </div>
+          <textarea id="cpu-source" spellcheck="false" rows="14"></textarea>
+          <div class="prog-foot">
+            <button class="btn btn-primary" id="cpu-assemble" type="button">Assemble &amp; load</button>
+            <span class="asm-status" id="cpu-asm-status"></span>
+          </div>
+          <details class="isa">
+            <summary>Instruction set</summary>
+            <table class="isa-table" id="isa-table"></table>
+            <p class="isa-note">
+              Each cell is one byte: the top four bits pick the instruction, the bottom four are
+              an address or a small number. <code>DB</code> puts a raw value in memory.
+            </p>
+          </details>
+        </div>
+      </aside>
+
+      <div class="ram-wrap">
+        <div class="ram-head">
+          <h3>Memory &mdash; 16 bytes</h3>
+          <p class="ram-legend">
+            <span class="lg lg-pc"></span> next instruction
+            <span class="lg lg-mar"></span> being addressed
+            <span class="ram-hint">click a value to edit it</span>
+          </p>
+        </div>
+        <div class="ram" id="cpu-ram"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="callout">
+      <h4>What "decode" really is</h4>
+      <p>
+        There is no interpreter inside. The instruction's top four bits are just wires going
+        into a lookup table, and that table decides which control lines to pull on each tick.
+        <code>LDA</code> is not a word the machine understands — it is the pattern
+        <code>0000</code> selecting a column of switches.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────────── 6. SPEED ───────────────────────────── -->
+<section id="speed" class="section alt">
+  <div class="wrap">
+    <p class="kicker"><span class="kicker-n">06</span> The clock</p>
+    <h2>Why waiting is the whole problem</h2>
+    <p class="copy">
+      The simulator above runs at a few ticks a second. A real core runs about three billion,
+      and does several instructions in each one. At that speed light itself only travels
+      10&nbsp;cm per tick — so distance becomes the enemy, and the entire memory system is
+      arranged as a series of increasingly desperate attempts to avoid waiting.
+    </p>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h3>If one clock tick were one second</h3>
+        <div class="panel-actions">
+          <span class="panel-note">hover or tap a bar</span>
+        </div>
+      </div>
+      <div class="latency" id="latency"></div>
+    </div>
+
+    <p class="copy">
+      Read that bottom bar again. To a processor, reaching across the Atlantic is not slow —
+      it is a <em>decade</em>. Caches, branch prediction, out-of-order execution, the whole
+      baroque machinery of a modern core, exist to keep the adder busy while the answer is
+      still in the post.
+    </p>
+
+    <div class="callout">
+      <h4>Where the speed actually comes from</h4>
+      <p>
+        Clock rates stopped climbing around 2005 — faster switching meant more heat than a chip
+        could shed. Everything since has come from doing more per tick: several instructions in
+        flight at once, many cores, wider vector units, and specialised silicon for the jobs
+        that repeat. The tick has barely moved in twenty years.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────────── 7. LAYERS ───────────────────────────── -->
+<section id="layers" class="section">
+  <div class="wrap">
+    <p class="kicker"><span class="kicker-n">07</span> The whole tower</p>
+    <h2>From a switch to a running program</h2>
+    <p class="copy">
+      Every layer below is built only out of the one beneath it, and hides that one completely.
+      Nobody holds the whole tower in their head at once — that is the point of it.
+      Click any floor.
+    </p>
+
+    <div class="tower" id="tower"></div>
+
+    <p class="copy closing">
+      So the answer to "how does a computer work" is that it doesn't, really — not in one
+      piece. It is a stack of small honest tricks, each one pretending to be something simpler
+      than it is, all the way down to a piece of sand that can tell whether a wire is hot.
+    </p>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <p>
+      Built as an interactive explainer. The processor in section 5 is a working simulation of
+      a SAP-1-style machine — the same teaching architecture behind Malvino &amp; Brown's
+      <em>Digital Computer Electronics</em> and Ben Eater's breadboard computer.
+    </p>
+    <p class="footer-meta">
+      <a href="https://github.com/ctbot000/computer-internal">Source on GitHub</a>
+    </p>
+  </div>
+</footer>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
