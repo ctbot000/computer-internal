@@ -2,13 +2,15 @@
 
 An interactive, visual walk up the whole ladder — from one transistor acting as a
 switch to a running program — with a working 8-bit CPU you can step through one
-clock tick at a time.
+clock tick at a time. Part two does the same for quantum computers, on top of an
+exact state-vector simulator.
 
-**→ [ctbot000.github.io/computer-internal](https://ctbot000.github.io/computer-internal/)**
+- **Part one — classical:** [ctbot000.github.io/computer-internal](https://ctbot000.github.io/computer-internal/)
+- **Part two — quantum:** [ctbot000.github.io/computer-internal/quantum.html](https://ctbot000.github.io/computer-internal/quantum.html)
 
 No build step, no dependencies, no tracking. Plain HTML, CSS and ES modules.
 
-## What is in it
+## Part one: how a computer works
 
 | # | Section | What you can do |
 |---|---------|-----------------|
@@ -20,7 +22,24 @@ No build step, no dependencies, no tracking. Plain HTML, CSS and ES modules.
 | 6 | **Speed** | Every level of the memory hierarchy rescaled so one clock tick is one second — the Atlantic comes out at sixteen years |
 | 7 | **Tower** | The ten layers between physics and the app you actually use |
 
-## The processor in section 5
+## Part two: how a quantum computer works
+
+| # | Section | What you can do |
+|---|---------|-----------------|
+| 1 | **Qubit** | Rotate a qubit around the Bloch sphere with H, X, Y, Z, S and T, and watch each gate sweep the arrow along the rotation it really performs |
+| 2 | **Measure** | Tilt a qubit, measure it and watch it collapse; measure thousands of fresh copies to estimate the odds, sampling error included |
+| 3 | **Interfere** | Two coin flips against two Hadamards: turn the phase between them and watch the arrows for each outcome add up or cancel |
+| 4 | **Entangle** | Switch H and CNOT on and off to make a Bell pair, measure 1,000 pairs, and see what simulating n qubits would cost a classical machine |
+| 5 | **Circuits** | A three-qubit circuit editor with step-through, circle notation, per-qubit Bloch spheres, 1,000-shot runs with adjustable noise, and examples including GHZ, Deutsch, Grover and teleportation |
+| 6 | **Search** | Grover's algorithm on 4 to 64 boxes, one oracle and one reflection at a time — including what happens when you go one round too far |
+| 7 | **Hardware** | The four main ways to build a qubit, an error-budget chart, and a surface-code patch where you inject errors and watch the checks light up — or not, for a logical error |
+| 8 | **Uses** | What a quantum computer is and is not good for |
+
+The simulator (`js/quantum/qsim.js`) tracks every amplitude exactly, so every
+picture on the page is what an ideal machine would do — except the circuit lab
+with its noise turned up, which runs each shot with random Pauli errors.
+
+## The processor in part one
 
 A SAP-1-style machine — the teaching architecture from Malvino & Brown's
 *Digital Computer Electronics*, and the one Ben Eater builds on breadboards.
@@ -72,7 +91,7 @@ bytes the program is currently executing.
 
 ## Running it locally
 
-The page uses ES modules, so it needs to be served over HTTP rather than opened
+The pages use ES modules, so they need to be served over HTTP rather than opened
 from the file system:
 
 ```bash
@@ -81,16 +100,28 @@ python3 -m http.server 8000
 
 Then open <http://localhost:8000>.
 
+The quantum simulator has unit tests — gate identities, Bloch rotations, Bell and
+GHZ states, measurement statistics, Grover's closed form and teleportation:
+
+```bash
+node --test
+```
+
 ## Layout
 
 ```
-index.html        markup and prose
-css/style.css     one stylesheet, dark and light
-js/app.js         theme, navigation, progress, reveal — then each section
-js/util.js        SVG helpers and the logic-gate shapes
-js/isa.js         the instruction set and its assembler
-js/intro.js       js/bits.js  js/gates.js  js/adder.js
-js/memory.js      js/cpu.js   js/speed.js  js/tower.js
+index.html            part one: markup and prose
+quantum.html          part two
+css/style.css         shared stylesheet, dark and light
+css/quantum.css       part two's additions
+js/shell.js           theme, navigation, progress and reveal, for both pages
+js/util.js            SVG helpers and the logic-gate shapes
+js/app.js             part one's sections: intro, bits, gates, adder,
+                      memory, cpu (with isa.js), speed, tower
+js/quantum/qsim.js    the state-vector simulator
+js/quantum/viz.js     Bloch sphere and circle notation
+js/quantum/*.js       part two's sections
+test/qsim.test.js     simulator tests
 ```
 
 ## Licence

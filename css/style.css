@@ -530,3 +530,32 @@ svg { display: block; max-width: 100%; height: auto; }
   .lat-fill { transition: none; }
   .floor:hover { transform: none; }
 }
+
+/* ── shared across pages ─────────────────────────────────── */
+.wrap-mid { max-width: 1040px; }
+
+.nav a.nav-page {
+  color: var(--violet);
+  border-color: color-mix(in srgb, var(--violet) 40%, transparent);
+  background: color-mix(in srgb, var(--violet) 8%, transparent);
+}
+.nav a.nav-page:hover { color: var(--text); border-color: var(--violet); }
+.nav a.nav-page::after { content: "\2197"; font-size: .72rem; margin-left: .1rem; }
+.nav a.nav-back::after { content: none; }
+.nav a.nav-back::before { content: "\2190"; font-size: .72rem; margin-right: .1rem; }
+
+.next-part {
+  display: grid; gap: .25rem; margin-top: 2.2rem; padding: 1.3rem 1.4rem;
+  border: 1px solid color-mix(in srgb, var(--violet) 45%, transparent);
+  border-radius: var(--radius); text-decoration: none; color: var(--text);
+  background:
+    radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--violet) 16%, transparent), transparent 60%),
+    var(--surface);
+  box-shadow: var(--shadow); transition: border-color .18s, transform .18s;
+}
+.next-part:hover { border-color: var(--violet); transform: translateY(-2px); }
+.next-kicker { font-family: var(--mono); font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--violet); }
+.next-title { font-size: 1.35rem; font-weight: 700; letter-spacing: -.02em; }
+.next-title::after { content: " \2192"; color: var(--violet); }
+.next-sub { color: var(--dim); font-size: .92rem; }
+@media (prefers-reduced-motion: reduce) { .next-part:hover { transform: none; } }

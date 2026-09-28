@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How a Quantum Computer Works</title>
+<meta name="description" content="An interactive, visual tour of quantum computing: qubits on the Bloch sphere, measurement, interference, entanglement, a three-qubit circuit simulator, Grover's search, and why error correction is the hard part.">
+<meta name="color-scheme" content="dark light">
+<meta property="og:title" content="How a Quantum Computer Works">
+<meta property="og:description" content="Qubits, interference and entanglement you can poke at — with an exact three-qubit simulator underneath.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230b1220'/%3E%3Ccircle cx='32' cy='32' r='20' fill='none' stroke='%23a58cff' stroke-width='4'/%3E%3Cellipse cx='32' cy='32' rx='20' ry='7' fill='none' stroke='%23a58cff' stroke-width='3'/%3E%3Cpath d='M32 32 L44 17' stroke='%23ffb648' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='44' cy='17' r='4' fill='%23ffb648'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/quantum.css">
+<script>
+  // Set the theme before first paint so a light-mode reader never sees a dark flash.
+  (function () {
+    var t;
+    try { t = localStorage.getItem('hcw-theme'); } catch (e) { t = null; }
+    if (!t) t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    document.documentElement.dataset.theme = t;
+  })();
+</script>
+</head>
+<body class="quantum">
+
+<a class="skip-link" href="#start">Skip to content</a>
+
+<header class="topbar">
+  <a class="brand" href="index.html" title="Part one: how a classical computer works">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span class="brand-text">How a Computer Works</span>
+  </a>
+  <nav class="nav" aria-label="Sections">
+    <a href="index.html" class="nav-page nav-back"><span class="nav-t">Classical</span></a>
+    <a href="#qubit" data-nav="qubit"><span class="nav-n">1</span><span class="nav-t">Qubit</span></a>
+    <a href="#measure" data-nav="measure"><span class="nav-n">2</span><span class="nav-t">Measure</span></a>
+    <a href="#interference" data-nav="interference"><span class="nav-n">3</span><span class="nav-t">Interfere</span></a>
+    <a href="#entangle" data-nav="entangle"><span class="nav-n">4</span><span class="nav-t">Entangle</span></a>
+    <a href="#lab" data-nav="lab"><span class="nav-n">5</span><span class="nav-t">Circuits</span></a>
+    <a href="#search" data-nav="search"><span class="nav-n">6</span><span class="nav-t">Search</span></a>
+    <a href="#hardware" data-nav="hardware"><span class="nav-n">7</span><span class="nav-t">Hardware</span></a>
+    <a href="#uses" data-nav="uses"><span class="nav-n">8</span><span class="nav-t">Uses</span></a>
+  </nav>
+  <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch colour theme">
+    <span class="theme-icon" aria-hidden="true"></span>
+  </button>
+</header>
+
+<div class="progress" aria-hidden="true"><div class="progress-bar" id="progress-bar"></div></div>
+
+<main>
+
+<!-- ───────────────────────────── INTRO ───────────────────────────── -->
+<section id="start" class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Part two &middot; a different kind of switch</p>
+    <h1>A quantum computer is not a faster&nbsp;computer.</h1>
+    <p class="lede">
+      It is a different machine built on a different kind of bit. For almost everything you
+      do — mail, games, spreadsheets — it would be slower, costlier and worse. For a handful
+      of problems it is so much better that no classical machine will ever catch up. This page
+      is about that difference, and about why it is so hard to use.
+    </p>
+    <p class="lede-sub">Same deal as part one: everything is live, and the simulator underneath is exact.</p>
+
+    <div class="cmp" role="table" aria-label="A bit compared with a qubit">
+      <div class="cmp-row cmp-head" role="row">
+        <span role="columnheader"></span>
+        <span role="columnheader">Bit</span>
+        <span role="columnheader">Qubit</span>
+      </div>
+      <div class="cmp-row" role="row">
+        <span role="rowheader">State</span>
+        <span role="cell">0 or 1</span>
+        <span role="cell">Two amplitudes, one for 0 and one for 1 — any point on a sphere</span>
+      </div>
+      <div class="cmp-row" role="row">
+        <span role="rowheader">Reading it</span>
+        <span role="cell">Tells you the state and changes nothing</span>
+        <span role="cell">Gives 0 or 1 at random — and the rest of the state is gone</span>
+      </div>
+      <div class="cmp-row" role="row">
+        <span role="rowheader">Copying</span>
+        <span role="cell">Free</span>
+        <span role="cell">Impossible: nothing can copy an unknown qubit</span>
+      </div>
+      <div class="cmp-row" role="row">
+        <span role="rowheader">n of them</span>
+        <span role="cell">Hold one of 2<sup>n</sup> values</span>
+        <span role="cell">Hold 2<sup>n</sup> amplitudes at once — yet hand back only n bits when read</span>
+      </div>
+      <div class="cmp-row" role="row">
+        <span role="rowheader">Errors</span>
+        <span role="cell">Almost never</span>
+        <span role="cell">Constantly — the outside world leaks in</span>
+      </div>
+    </div>
+
+    <p class="hint">
+      The one-line version: a quantum computer does <strong>not</strong> try every answer at once
+      and pick the right one. It sets up waves of possibility and arranges for the wrong answers
+      to cancel out.
+    </p>
+  </div>
+</section>
+
+<!-- ───────────────────────────── 1. QUBIT ───────────────────────────── -->
+<section id="qubit" class="section">
+  <div class="wrap">
+    <p class="kicker"><span class="kicker-n">01</span> The atom, again</p>
+    <h2>A bit that can point anywhere</h2>
+    <p class="copy">
+      A classical bit is a switch: up or down. A qubit is described by two numbers called
+      <strong>amplitudes</strong> — one for 0, one for 1 — and those numbers can be negative, or
+      even complex. The tidy way to picture that is a sphere: 0 at the north pole, 1 at the
+      south, and every other point a <strong>superposition</strong> of the two.
+    </p>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h3>One qubit &mdash; apply gates, drag the sphere to look around</h3>
+      </div>
+      <div class="qubit-demo" id="qubit-demo"></div>
+    </div>
+
+    <p class="copy">
+      Every operation you can do to a single qubit is a rotation of that sphere — watch the
+      arrow sweep as each gate turns it. That is what a quantum gate is. Not a lump of wiring
+      the data flows through, as in part one, but a precisely timed nudge — a pulse of
+      microwaves or a flash of laser light — aimed at a qubit that sits still.
+    </p>
+
+    <div class="callout">
+      <h4>Latitude and longitude</h4>
+      <p>
+        How far the arrow tips toward the south pole sets the odds of reading 1. How far it has
+        turned around the vertical axis — the <em>phase</em> — has no effect on those odds at
+        all. <code>Z</code>, <code>S</code> and <code>T</code> only ever turn the phase, so they
+        never change the odds — applied straight to |0⟩ they appear to do nothing at all. The
+        phase is invisible to a measurement, and it is the most important number on this page:
+        section 3 is about why.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────────── 2. MEASURE ───────────────────────────── -->
+<section id="measure" class="section alt">
+  <div class="wrap">
+    <p class="kicker"><span class="kicker-n">02</span> Looking</p>
+    <h2>Reading a qubit destroys it</h2>
+    <p class="copy">
+      You never get to see the arrow. A measurement asks one question — 0 or 1? — and the qubit
+      answers at random, with odds set by its latitude. Then it stays where it landed: the
+      superposition is gone, and measuring again only repeats the answer.
+    </p>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Prepare a qubit, then look at it</h3>
+      </div>
+      <div class="measure-demo" id="measure-demo"></div>
+    </div>
+
+    <p class="copy">
+      The only way to learn the odds is to prepare the same state again and again and count —
+      which is exactly what real machines do. A quantum program is typically run thousands of
+      times, and the answer is read off the histogram. Notice that the estimate is never
+      exact: that sampling error is part of every quantum result.
+    </p>
+  </div>
+</section>
+
+<!-- ───────────────────────────── 3. INTERFERENCE ───────────────────────────── -->
+<section id="interference" class="section">
+  <div class="wrap">
+    <p class="kicker"><span class="kicker-n">03</span> The actual trick</p>
+    <h2>Arrows that cancel</h2>
+    <p class="copy">
+      Here is the experiment that separates quantum from merely random. Flip a fair coin twice
+      and the result is random; flipping it again cannot make it less so. Apply the qubit
+      version — the Hadamard gate, <code>H</code> — twice, and the result is
+      <em>certain</em>: back to 0, every time.
+    </p>
+    <p class="copy">
+      The reason is that amplitudes are not probabilities. Every route to an outcome
+      contributes an arrow, and the arrows for the same outcome add up tip to tail — so arrows
+      pointing opposite ways cancel. Probabilities can only ever pile up. Turn the phase
+      between the two gates and watch the answer swing from certainly 0 to certainly 1.
+    </p>
+  </div>
+
+  <div class="wrap wrap-mid">
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Two coin flips versus two Hadamards</h3>
+        <div class="panel-actions" id="interf-presets"></div>
+      </div>
+      <div class="interf" id="interf"></div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <p class="copy">
+      That is the entire engine. Every quantum algorithm is a choreography of phases, arranged
+      so that the arrows for wrong answers cancel and the arrows for the right answer line up.
+      It is not trying every possibility and keeping the best — a measurement would just hand
+      back one at random. It is making the right one likely.
+    </p>
+  </div>
+</section>
+
+<!-- ───────────────────────────── 4. ENTANGLE ───────────────────────────── -->
+<section id="entangle" class="section alt">
+  <div class="wrap">
+    <p class="kicker"><span class="kicker-n">04</span> Two at once</p>
+    <h2>Two qubits, one state</h2>
+    <p class="copy">
+      Two qubits have four amplitudes, one each for 00, 01, 10 and 11. Usually that is just
+      two separate qubits side by side. But apply <code>H</code> to the first and then a
+      <strong>controlled-NOT</strong> — flip the second only where the first is 1 — and you get
+      a state that cannot be split into two parts at all: an <strong>entangled</strong> pair.
+    </p>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Make a Bell pair &mdash; click the gates to switch them on and off</h3>
+      </div>
+      <div class="ent" id="ent"></div>
+    </div>
+
+    <p class="copy">
+      Measure either qubit and you get a fair coin toss. Measure both and they always agree.
+      Neither qubit has a direction of its own — its arrow shrinks to nothing — because all
+      the information lives in the relationship between them. (It still cannot carry a
+      message: each side, on its own, only ever sees a fair coin.)
+    </p>
+    <p class="copy">
+      Here is why that matters. Every qubit you add doubles the number of amplitudes the
+      machine is juggling at once, and a classical computer trying to keep up has to store
+      every one of them.
+    </p>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h3>The cost of pretending to be a quantum computer</h3>
+      </div>
+      <div class="growth" id="growth"></div>
+    </div>
+
+    <div class="callout">
+      <h4>The catch that keeps it honest</h4>
+      <p>
+        Those amplitudes are real, but you cannot read them. Measure n qubits and you get n bits
+        back; the rest is gone. The power is not storage — it is that one operation shifts
+        every amplitude at once, and interference can steer all of them together. The art is
+        arranging for a useful answer to survive the measurement.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────────── 5. LAB ───────────────────────────── -->
+<section id="lab" class="section">
+  <div class="wrap">
+    <p class="kicker"><span class="kicker-n">05</span> Programs</p>
+    <h2>A circuit you can build</h2>
+    <p class="copy">
+      A quantum program is written as a <strong>circuit</strong>: one wire per qubit, time
+      running left to right, gates placed along the wires. A dot joined to a gate means
+      <em>controlled</em> — the gate only acts where the dot's qubit is 1. Click any slot to
+      change it, and step through to watch the state change.
+    </p>
+  </div>
+
+  <div class="wrap wrap-wide">
+    <div class="lab" id="lab-root"></div>
+  </div>
+
+  <div class="wrap">
+    <p class="copy">
+      Run the GHZ state with the noise turned up, and the clean 000 / 111 split starts
+      sprouting outcomes that should be impossible. Then load the teleportation example and
+      watch the bottom qubit's sphere: by the last step it points exactly where the top one
+      pointed after step 2. In a real lab the last two steps are replaced by measuring the top
+      two qubits and sending two ordinary bits down a wire; the simulator uses the equivalent
+      controlled gates instead.
+    </p>
+  </div>
+</section>
+
+<!-- ───────────────────────────── 6. SEARCH ───────────────────────────── -->
+<section id="search" class="section alt">
+  <div class="wrap">
+    <p class="kicker"><span class="kicker-n">06</span> An algorithm</p>
+    <h2>Finding a needle with interference</h2>
+    <p class="copy">
+      One of N boxes holds a prize, and all you may ask is "is it this one?". Classically you
+      expect to open about half of them. <strong>Grover's algorithm</strong> needs only about
+      &radic;N questions: a thousand boxes take around 25 instead of 500.
+    </p>
+    <p class="copy">
+      It repeats two moves. The <strong>oracle</strong> flips the sign of the prize's amplitude —
+      it marks it without revealing it. Then <strong>diffusion</strong> reflects every amplitude
+      about their average: the flipped one, now far below the average, bounces far above it.
+      Each round, the prize grows and everything else shrinks.
+    </p>
+  </div>
+
+  <div class="wrap wrap-mid">
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Grover search &mdash; click a bar to hide the prize there</h3>
+        <div class="panel-actions" id="grover-n"></div>
+      </div>
+      <div class="grover" id="grover"></div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <p class="copy">
+      Keep going past the best number of rounds and it gets worse again — the amplitude swings
+      past its peak like a pendulum. A quantum algorithm has to know when to stop.
+    </p>
+
+    <div class="callout">
+      <h4>A real speed-up, but a modest one</h4>
+      <p>
+        A square root is not nothing: for a million items it is about 785 questions instead of
+        500,000. But each quantum step is slow and expensive, and once error correction is paid
+        for, many search problems end up no faster than a good classical machine. The dramatic,
+        exponential speed-ups come from problems with hidden structure — like factoring large
+        numbers.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────────── 7. HARDWARE ───────────────────────────── -->
+<section id="hardware" class="section">
+  <div class="wrap">
+    <p class="kicker"><span class="kicker-n">07</span> The hard part</p>
+    <h2>Why you don't have one</h2>
+    <p class="copy">
+      A qubit must be isolated well enough that the world does not jostle it, yet reachable
+      enough to rotate on command. Those demands pull in opposite directions, and every way of
+      building one is a different compromise.
+    </p>
+
+    <div class="plats">
+      <article class="plat">
+        <h4>Superconducting circuits</h4>
+        <p><b>0 and 1:</b> two energy levels of a tiny loop of superconducting metal on a chip.</p>
+        <p><b>Flipped by:</b> microwave pulses lasting tens of nanoseconds — the fastest gates of any platform.</p>
+        <p><b>The catch:</b> they only work at around 0.01 kelvin — hundreds of times colder than deep space — and hold their state for a millisecond at best.</p>
+      </article>
+      <article class="plat">
+        <h4>Trapped ions</h4>
+        <p><b>0 and 1:</b> two energy levels of a single charged atom, held in vacuum by electric fields.</p>
+        <p><b>Flipped by:</b> laser or microwave pulses.</p>
+        <p><b>The catch:</b> exquisitely accurate and long-lived — seconds or more — but gates are about a thousand times slower, and long chains of ions are hard to scale.</p>
+      </article>
+      <article class="plat">
+        <h4>Neutral atoms</h4>
+        <p><b>0 and 1:</b> energy levels of uncharged atoms, each held in its own beam of focused laser light.</p>
+        <p><b>Flipped by:</b> lasers; neighbours are entangled by briefly puffing atoms up into enormous "Rydberg" states.</p>
+        <p><b>The catch:</b> arrays of thousands of atoms have been built, but atoms get lost and operations are slower than on chips.</p>
+      </article>
+      <article class="plat">
+        <h4>Photons</h4>
+        <p><b>0 and 1:</b> which path, or which polarisation, a single particle of light takes.</p>
+        <p><b>Flipped by:</b> ordinary optics — beam splitters and phase shifters.</p>
+        <p><b>The catch:</b> light barely interacts with light, so two-qubit operations are hard and probabilistic, and every photon lost is an error.</p>
+      </article>
+    </div>
+
+    <p class="copy">
+      None of them is anywhere near error-free. Even the best two-qubit gates fail somewhere
+      around one time in a thousand — better on a few machines, worse on most — while a useful
+      algorithm needs billions of operations.
+    </p>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h3>How long a circuit survives its own errors</h3>
+      </div>
+      <div class="budget" id="budget"></div>
+    </div>
+
+    <p class="copy">
+      The way out is <strong>error correction</strong>: spread one reliable <em>logical</em>
+      qubit across many physical ones, and keep checking them in small groups for disagreement —
+      without ever measuring the data itself, which would destroy it. The leading scheme, the
+      <strong>surface code</strong>, lays qubits out as a grid.
+    </p>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h3>A surface code patch &mdash; click a data qubit to give it an error</h3>
+        <div class="panel-actions" id="sc-controls"></div>
+      </div>
+      <div class="sc" id="sc"></div>
+    </div>
+
+    <p class="copy">
+      The price is steep. At today's error rates, one dependable logical qubit is expected to
+      need hundreds to a thousand physical ones, and recent estimates for breaking today's
+      RSA encryption come to under a million physical qubits running for about a week. The
+      largest machines so far hold hundreds to a few thousand.
+    </p>
+
+    <div class="callout">
+      <h4>The milestone that matters</h4>
+      <p>
+        Error correction only helps if the physical qubits are already good enough — below a
+        <em>threshold</em>. Above it, adding qubits adds more errors than it removes. Experiments
+        in the last few years have shown logical qubits getting <em>more</em> reliable as they
+        were made bigger, which is the first real evidence that the whole plan can work.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────────── 8. USES ───────────────────────────── -->
+<section id="uses" class="section alt">
+  <div class="wrap">
+    <p class="kicker"><span class="kicker-n">08</span> What it's for</p>
+    <h2>A co-processor for a few hard problems</h2>
+    <p class="copy">
+      A quantum computer will not replace the one you are reading this on. It is a specialist,
+      like a graphics card, that a classical computer hands a narrow class of problems.
+    </p>
+
+    <div class="uses">
+      <article class="use use-yes">
+        <span class="use-tag">natural fit</span>
+        <h4>Simulating molecules and materials</h4>
+        <p>
+          Nature is quantum, so simulating it classically runs into the same exponential wall as
+          section 4. A quantum computer sidesteps that by being the same kind of system —
+          the reason the idea was proposed in the first place. Catalysts, batteries and drugs
+          are the targets; useful sizes still need error-corrected machines.
+        </p>
+      </article>
+      <article class="use use-yes">
+        <span class="use-tag">real, and a threat</span>
+        <h4>Breaking today's public-key encryption</h4>
+        <p>
+          Shor's algorithm factors large numbers exponentially faster than any known classical
+          method, which breaks RSA and elliptic-curve cryptography. No machine can run it at that
+          scale yet, but data recorded today could be decrypted later — so the switch to
+          quantum-resistant encryption is already under way, with the first standards
+          published in 2024.
+        </p>
+      </article>
+      <article class="use use-maybe">
+        <span class="use-tag">modest</span>
+        <h4>Search</h4>
+        <p>
+          Grover's square-root speed-up is real and proven, but after error-correction overheads
+          it rarely beats a well-built classical computer on a practical problem.
+        </p>
+      </article>
+      <article class="use use-maybe">
+        <span class="use-tag">unproven</span>
+        <h4>Optimisation and machine learning</h4>
+        <p>
+          Heavily promoted, actively researched, and so far without a clear demonstration of
+          beating the best classical methods on a problem anyone needed solved.
+        </p>
+      </article>
+      <article class="use use-no">
+        <span class="use-tag">no</span>
+        <h4>Everything else</h4>
+        <p>
+          Web pages, video, games, spreadsheets, databases: no speed-up at all. Reading data in
+          and out is slow, and a quantum computer would be a spectacularly expensive way to add
+          up a column.
+        </p>
+      </article>
+    </div>
+
+    <p class="copy closing">
+      Every quantum computer is run by a classical one: racks of ordinary processors timing
+      the pulses, reading out results and decoding errors as fast as they arrive. The tower
+      from part one is still standing. It has just grown a very strange new floor at the bottom.
+    </p>
+
+    <a class="next-part" href="index.html">
+      <span class="next-kicker">Back to part one</span>
+      <span class="next-title">How a classical computer works</span>
+      <span class="next-sub">From one switch to a running program, with an 8-bit CPU you can step through.</span>
+    </a>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <p>
+      The simulator on this page tracks every amplitude exactly, so everything it shows is what
+      an ideal, noise-free machine would do — except in the circuit lab with the noise turned
+      up, where each gate has a chance of suffering a random error.
+    </p>
+    <p class="footer-meta">
+      <a href="index.html">Part one: classical</a> &middot;
+      <a href="https://github.com/ctbot000/computer-internal">Source on GitHub</a>
+    </p>
+  </div>
+</footer>
+
+<script type="module" src="js/quantum/app.js"></script>
+</body>
+</html>
